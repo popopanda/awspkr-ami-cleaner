@@ -17,7 +17,7 @@ func janitor() {
 	dryRun := aws.Bool(true)
 	maxKeepDays := maxKeepHours / 24
 
-	fmt.Printf("AMIs are kept no longer than %v days.\n" + strconv.FormatFloat(maxKeepDays, 'f', -1, 64))
+	fmt.Printf("AMIs are kept no longer than %v days.\n", strconv.FormatFloat(maxKeepDays, 'f', -1, 64))
 
 	sess := session.Must(session.NewSession())
 	svc := ec2.New(sess)
