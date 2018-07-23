@@ -12,7 +12,7 @@ import (
 
 func main() {
 
-	const maxKeepHours = 24.0
+	const maxKeepHours = 1440.0 //60 days
 	dryRun := aws.Bool(true)
 
 	sess := session.Must(session.NewSession())
@@ -33,24 +33,18 @@ func main() {
 	errorHandle(err)
 
 	for _, pkrImages := range result.Images {
-		for _, value := range pkrImages.Tags {
-			if *value.Key == *aws.String("Role") {
-				pkrTime, err := time.Parse(time.RFC3339, aws.StringValue(pkrImages.CreationDate))
-				errorHandle(err)
-				timeSince := time.Since(pkrTime).Hours()
+		pkrTime, err := time.Parse(time.RFC3339, aws.StringValue(pkrImages.CreationDate))
+		errorHandle(err)
+		timeSince := time.Since(pkrTime).Hours()
 
-				if timeSince <= maxKeepHours {
-					fmt.Printf("Skipping AMI: %s\n", aws.StringValue(pkrImages.ImageId))
-				} else {
-					fmt.Printf("Deregistering AMI: %s\n", aws.StringValue(pkrImages.ImageId))
-					svc.DeregisterImage(&ec2.DeregisterImageInput{
-						DryRun:  dryRun,
-						ImageId: pkrImages.ImageId,
-					})
-				}
-			} else {
-				continue
-			}
+		if timeSince <= maxKeepHours {
+			fmt.Printf("Skipping AMI: %s\n", aws.StringValue(pkrImages.ImageId))
+		} else {
+			fmt.Printf("Deregistering AMI: %s\n", aws.StringValue(pkrImages.ImageId))
+			svc.DeregisterImage(&ec2.DeregisterImageInput{
+				DryRun:  dryRun,
+				ImageId: pkrImages.ImageId,
+			})
 		}
 	}
 }
