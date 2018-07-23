@@ -3,17 +3,21 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-func main() {
-
-	const maxKeepHours = 1440.0 //60 days
+func janitor() {
+	const maxKeepHours = 720.0 //60 days
 	dryRun := aws.Bool(true)
+	maxKeepDays := maxKeepHours / 24
+
+	fmt.Printf("AMIs are kept no longer than %v days.\n" + strconv.FormatFloat(maxKeepDays, 'f', -1, 64))
 
 	sess := session.Must(session.NewSession())
 	svc := ec2.New(sess)
@@ -53,4 +57,8 @@ func errorHandle(err error) {
 	if err != nil {
 		log.Fatalf("There was an error, %v\n", err)
 	}
+}
+
+func main() {
+	lambda.Start(janitor)
 }
