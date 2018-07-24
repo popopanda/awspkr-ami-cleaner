@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -14,10 +15,12 @@ import (
 
 func janitor() {
 	const maxKeepHours = 720.0 //60 days
-	dryRun := aws.Bool(true)
+
+	dryRun, _ := strconv.ParseBool(os.Getenv("DRYRUN"))
 	maxKeepDays := maxKeepHours / 24
 
 	fmt.Printf("AMIs are kept no longer than %v days.\n", strconv.FormatFloat(maxKeepDays, 'f', -1, 64))
+	fmt.Printf("Dryrun is set to: %v\n", dryRun)
 
 	sess := session.Must(session.NewSession())
 	svc := ec2.New(sess)
@@ -46,7 +49,7 @@ func janitor() {
 		} else {
 			fmt.Printf("Deregistering AMI: %s\n", aws.StringValue(pkrImages.ImageId))
 			_, err := svc.DeregisterImage(&ec2.DeregisterImageInput{
-				DryRun:  dryRun,
+				DryRun:  aws.Bool(dryRun),
 				ImageId: pkrImages.ImageId,
 			})
 			errorHandle(err)
