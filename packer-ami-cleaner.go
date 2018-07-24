@@ -45,10 +45,11 @@ func janitor() {
 			fmt.Printf("Skipping AMI: %s\n", aws.StringValue(pkrImages.ImageId))
 		} else {
 			fmt.Printf("Deregistering AMI: %s\n", aws.StringValue(pkrImages.ImageId))
-			svc.DeregisterImage(&ec2.DeregisterImageInput{
+			_, err := svc.DeregisterImage(&ec2.DeregisterImageInput{
 				DryRun:  dryRun,
 				ImageId: pkrImages.ImageId,
 			})
+			errorHandle(err)
 		}
 	}
 }
