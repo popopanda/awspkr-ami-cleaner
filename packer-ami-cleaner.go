@@ -39,6 +39,7 @@ func janitor() {
 	result, err := svc.DescribeImages(input)
 	errorHandle(err)
 
+L:
 	for _, pkrImages := range result.Images {
 		pkrTime, err := time.Parse(time.RFC3339, aws.StringValue(pkrImages.CreationDate))
 		errorHandle(err)
@@ -47,6 +48,12 @@ func janitor() {
 		if timeSince <= maxKeepHours {
 			fmt.Printf("Skipping AMI: %s\n", aws.StringValue(pkrImages.ImageId))
 		} else {
+
+			for _, tags := range pkrImages.Tags {
+				if aws.StringValue(tags.Key) == "Role" && aws.StringValue(tags.Value) == "ecs-agent" {
+					continue L
+				}
+			}
 			fmt.Printf("Deregistering AMI: %s\n", aws.StringValue(pkrImages.ImageId))
 			_, err := svc.DeregisterImage(&ec2.DeregisterImageInput{
 				DryRun:  aws.Bool(dryRun),
