@@ -46,11 +46,12 @@ L:
 		timeSince := time.Since(pkrTime).Hours()
 
 		if timeSince <= maxKeepHours {
-			fmt.Printf("Skipping AMI: %s\n", aws.StringValue(pkrImages.ImageId))
+			fmt.Printf("AMI: %s is not older than %v days, skipping...\n", aws.StringValue(pkrImages.ImageId), maxKeepDays)
 		} else {
 
 			for _, tags := range pkrImages.Tags {
 				if aws.StringValue(tags.Key) == "Role" && aws.StringValue(tags.Value) == "ecs-agent" {
+					fmt.Println("Skipping ecs-agent ami: ", aws.StringValue(pkrImages.ImageId))
 					continue L
 				}
 			}
